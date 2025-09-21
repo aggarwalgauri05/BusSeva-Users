@@ -1,6 +1,7 @@
 // home_screen.dart
 import 'package:flutter/material.dart';
 import 'search_results_page.dart'; // Import the new search results page
+import 'map.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -672,12 +673,13 @@ class _HomeScreenState extends State<HomeScreen> {
   
   void _trackBus(String busNumber) {
     // Navigate to bus tracking screen
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => BusTrackingScreen(busNumber: busNumber),
-    //   ),
-    // );
+    // --- REPLACE THE OLD METHOD WITH THIS ---
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapScreen(busNumber: busNumber),
+      ),
+    );
   }
   
   void _showSOSDialog() {

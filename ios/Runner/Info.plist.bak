@@ -45,13 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-
-	<!-- Location permission explanations -->
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>BusSeva needs your location to show nearby buses and to let you track routes while using the app.</string>
-
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>BusSeva may use your location in the background to continue tracking during an active trip (optional — enable only if needed).</string>
-
+	<string>NSLocationWhenInUseUsageDescription</string>
+	<key>Want to display location on map and track it</key>
+	<string>NSLocationAlwaysAndWhenInUseUsageDescription</string>
+	<key>Want to display location on map and track it</key>
 </dict>
 </plist>
