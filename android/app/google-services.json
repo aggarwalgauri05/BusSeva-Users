@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "692459200509",
+    "project_id": "bus-seva-b152d",
+    "storage_bucket": "bus-seva-b152d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:692459200509:android:edbfbe6258589e8d5d0394",
+        "android_client_info": {
+          "package_name": "com.example.bus_seva"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6eivZIKvVQWX5D7MATNmogqx_pfeKJ_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
