@@ -42,7 +42,7 @@ class BusTrackingService {
       
       if (doc.exists) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return BusRoute.fromFirestore(data, doc.id);
+        return BusRoute.fromFirestore(data as String, doc.id as Map<String, dynamic>);
       }
       
       throw Exception('Route not found');

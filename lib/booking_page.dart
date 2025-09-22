@@ -4,7 +4,7 @@ import 'package:bus_seva/booking_confirmation_page.dart'; // We'll create this n
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic> busData;
 
-  const BookingPage({super.key, required this.busData});
+  const BookingPage({super.key, required this.busData, required String busId, required String routeId});
 
   @override
   State<BookingPage> createState() => _BookingPageState();

@@ -514,7 +514,7 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
                 _getLastUpdateText(),
                 'Updated'
               ),
-              if (_userLocation != null && _busData!['currentLocation'] != null) ..[
+              if (_userLocation != null && _busData!['currentLocation'] != null) ...[
                 SizedBox(width: 20),
                 _buildQuickInfo(
                   Icons.straighten, 

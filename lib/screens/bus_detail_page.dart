@@ -467,7 +467,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
             ],
           ),
           
-          if (currentLocation != null) ..[
+          if (currentLocation != null) ...[
             SizedBox(height: 12),
             Row(
               children: [
@@ -680,7 +680,7 @@ class _BusDetailPageState extends State<BusDetailPage> {
                     MaterialPageRoute(
                       builder: (context) => BookingPage(
                         busId: widget.busId,
-                        routeId: widget.routeId,
+                        routeId: widget.routeId, busData: {},
                       ),
                     ),
                   );

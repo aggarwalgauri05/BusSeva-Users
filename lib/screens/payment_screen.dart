@@ -52,84 +52,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
     super.dispose();
   }
   
-  Future<void> _processPayment() async {
-    if (selectedPaymentMethod == 'UPI' && _upiController.text.isEmpty) {
-      _showSnackBar('Please enter UPI ID', isError: true);
-      return;
-    }
-    
-    setState(() {
-      isProcessing = true;
-    });
-    
-    try {
-      // Generate booking ID
-      String bookingId = const Uuid().v4();
-      
-      // Create booking data
-      Map<String, dynamic> finalBookingData = {
-        'bookingId': bookingId,
-        'userId': AuthService.currentUser?.uid,
-        'userPhone': AuthService.currentUser?.phoneNumber,
-        'from': widget.bookingData['from'],
-        'to': widget.bookingData['to'],
-        'busNumber': widget.bookingData['busNumber'] ?? 'DL-1234',
-        'selectedSeats': widget.bookingData['selectedSeats'],
-        'totalFare': widget.bookingData['totalFare'],
-        'passengerCount': widget.bookingData['passengerCount'],
-        'paymentMethod': selectedPaymentMethod,
-        'paymentStatus': selectedPaymentMethod == 'CASH' ? 'Pending' : 'Paid',
-        'bookingStatus': 'Confirmed',
-        'bookingDate': FieldValue.serverTimestamp(),
-        'travelDate': widget.bookingData['travelDate'] ?? DateTime.now(),
-        'emergencyContact': _emergencyContactController.text.isNotEmpty ? {
-          'name': _emergencyNameController.text,
-          'phone': _emergencyContactController.text,
-        } : null,
-      };
-      
-      // Save booking to Firestore
-      await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(bookingId)
-          .set(finalBookingData);
-      
-      // Update user's booking history
-      if (AuthService.currentUser != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(AuthService.currentUser!.uid)
-            .update({
-          'totalTrips': FieldValue.increment(1),
-          'totalSpent': FieldValue.increment(widget.bookingData['totalFare'].toDouble()),
-        });
-      }
-      
-      // Simulate payment processing delay
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        isProcessing = false;
-      });
-      
-      // Navigate to booking confirmation
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BookingConfirmationPage(
-            bookingData: finalBookingData,
-          ),
-        ),
-        (route) => route.isFirst,
-      );
-      
-    } catch (e) {
-      setState(() {
-        isProcessing = false;
-      });
-      _showSnackBar('Payment failed: $e', isError: true);
-    }
-  }
+Future<void> _processPayment() async {
+  // Generate booking ID
+  String bookingId = const Uuid().v4();
+
+  // Create booking data
+  Map<String, dynamic> finalBookingData = {
+    'bookingId': bookingId,
+    'userId': AuthService.currentUser?.uid,
+    'userPhone': AuthService.currentUser?.phoneNumber,
+    'from': widget.bookingData['from'],
+    'to': widget.bookingData['to'],
+    'busNumber': widget.bookingData['busNumber'] ?? 'DL-1234',
+    'selectedSeats': widget.bookingData['selectedSeats'],
+    'totalFare': widget.bookingData['totalFare'],
+    'passengerCount': widget.bookingData['passengerCount'],
+    'paymentMethod': selectedPaymentMethod,
+    'paymentStatus': selectedPaymentMethod == 'CASH' ? 'Pending' : 'Paid',
+    'bookingStatus': 'Confirmed',
+    'bookingDate': DateTime.now(),
+    'travelDate': widget.bookingData['travelDate'] ?? DateTime.now(),
+    'emergencyContact': _emergencyContactController.text.isNotEmpty
+        ? {
+            'name': _emergencyNameController.text,
+            'phone': _emergencyContactController.text,
+          }
+        : null,
+  };
+
+  // Navigate directly without waiting
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (context) => BookingConfirmationPage(
+        bookingData: finalBookingData,
+      ),
+    ),
+  );
+}
+
   
   void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
