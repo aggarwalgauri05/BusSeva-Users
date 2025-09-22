@@ -4,17 +4,7 @@ class SampleDataService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Call this method once to populate Firestore with sample data.
-  static Future<void> setupSampleData() async {
-    try {
-      await _setupRoutes();
-      await _setupBuses();
-      await _setupLiveLocations();
-      print('✅ Sample data setup completed!');
-    } catch (e) {
-      print('❌ Error setting up sample data: $e');
-      rethrow;
-    }
-  }
+  
 
   static Future<void> _setupRoutes() async {
   final routes = [
@@ -149,6 +139,110 @@ class SampleDataService {
     await _firestore.collection('routes').doc(route['id'] as String?).set(route);
   }
 }
+// Add this to your sample_data_service.dart
+// Add this method to your SampleDataService class
+static Future _setupUserTrips() async {
+  // Use the actual user ID from the logs
+  final String userId = 'rXOtiyQpS0PxXvkUeLOpWU2kRUE2';
+  
+  final sampleTrips = [
+    {
+      'userId': userId,
+      'busId': 'bus_001',
+      'routeId': 'route_delhi_jaipur_001',
+      'bookingId': 'BK${DateTime.now().millisecondsSinceEpoch}',
+      'fromStopId': 'stop_delhi_001',
+      'toStopId': 'stop_jaipur_001',
+      'fromStopName': 'ISBT Kashmere Gate',
+      'toStopName': 'Sindhi Camp Bus Stand',
+      'seatNumbers': ['12A', '12B'],
+      'departureTime': Timestamp.fromDate(DateTime.now().add(Duration(hours: 4))),
+      'bookingDate': Timestamp.fromDate(DateTime.now().subtract(Duration(hours: 2))),
+      'status': 'upcoming',
+      'totalFare': 280.0,
+      'paymentMethod': 'UPI',
+      'busNumber': 'DL-1CA-1234',
+      'smsAlertsEnabled': false,
+    },
+    {
+      'userId': userId,
+      'busId': 'bus_002',
+      'routeId': 'route_delhi_lucknow_001',
+      'bookingId': 'BK${DateTime.now().millisecondsSinceEpoch + 1}',
+      'fromStopId': 'stop_delhi_002',
+      'toStopId': 'stop_lucknow_001',
+      'fromStopName': 'Anand Vihar ISBT',
+      'toStopName': 'Lucknow Charbagh',
+      'seatNumbers': ['8A'],
+      'departureTime': Timestamp.fromDate(DateTime.now().add(Duration(days: 1))),
+      'bookingDate': Timestamp.fromDate(DateTime.now().subtract(Duration(hours: 1))),
+      'status': 'upcoming',
+      'totalFare': 500.0,
+      'paymentMethod': 'Card',
+      'busNumber': 'DL-1CB-5678',
+      'smsAlertsEnabled': true,
+    },
+    // Add a completed trip for history
+    {
+      'userId': userId,
+      'busId': 'bus_001',
+      'routeId': 'route_delhi_agra_002',
+      'bookingId': 'BK${DateTime.now().millisecondsSinceEpoch + 2}',
+      'fromStopId': 'stop_delhi_003',
+      'toStopId': 'stop_agra_002',
+      'fromStopName': 'ISBT Anand Vihar',
+      'toStopName': 'Agra Fort Bus Stand',
+      'seatNumbers': ['15C'],
+      'departureTime': Timestamp.fromDate(DateTime.now().subtract(Duration(days: 2))),
+      'bookingDate': Timestamp.fromDate(DateTime.now().subtract(Duration(days: 3))),
+      'status': 'completed',
+      'totalFare': 230.0,
+      'paymentMethod': 'Cash',
+      'busNumber': 'DL-1CA-1234',
+      'smsAlertsEnabled': false,
+    },
+    // Add an ongoing trip
+    {
+      'userId': userId,
+      'busId': 'bus_001',
+      'routeId': 'route_delhi_jaipur_001',
+      'bookingId': 'BK${DateTime.now().millisecondsSinceEpoch + 3}',
+      'fromStopId': 'stop_delhi_001',
+      'toStopId': 'stop_jaipur_001',
+      'fromStopName': 'ISBT Kashmere Gate',
+      'toStopName': 'Sindhi Camp Bus Stand',
+      'seatNumbers': ['10A'],
+      'departureTime': Timestamp.fromDate(DateTime.now().subtract(Duration(minutes: 30))),
+      'bookingDate': Timestamp.fromDate(DateTime.now().subtract(Duration(hours: 6))),
+      'status': 'ongoing',
+      'totalFare': 280.0,
+      'paymentMethod': 'UPI',
+      'busNumber': 'DL-1CA-1234',
+      'smsAlertsEnabled': true,
+    },
+  ];
+
+  for (final trip in sampleTrips) {
+    await _firestore.collection('user_trips').add(trip);
+  }
+  
+  print('✅ Created ${sampleTrips.length} sample user trips');
+}
+
+// Update your setupSampleData method to include this:
+static Future setupSampleData() async {
+  try {
+    await _setupRoutes();
+    await _setupBuses();
+    await _setupLiveLocations();
+    await _setupUserTrips(); // Add this line
+    print('✅ Sample data setup completed!');
+  } catch (e) {
+    print('❌ Error setting up sample data: $e');
+    rethrow;
+  }
+}
+
 
 
   static Future<void> _setupBuses() async {

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'map.dart';
 import 'screens/search_screen.dart';
 import 'services/sample_data_service.dart';
+import 'services/auth_service.dart';
+import 'screens/user_dashboard_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -80,25 +83,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 30),
-
-                    // Hero Search Section
                     _buildHeroSearchSection(),
-
                     const SizedBox(height: 40),
-
-                    // Quick track
                     _buildQuickTrack(),
-
                     const SizedBox(height: 30),
-
-                    // Popular routes
                     _buildPopularRoutes(),
-
                     const SizedBox(height: 20),
-
-                    // Recent searches (if any)
                     _buildRecentSearches(),
-
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -107,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ],
         ),
       ),
-      // ...existing code...
+
+      // Floating buttons
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -131,20 +123,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           const SizedBox(height: 16),
           FloatingActionButton(
             onPressed: () {
-              // Emergency SOS
               _showSOSDialog();
             },
             backgroundColor: const Color(0xFFEF4444),
             child: const Icon(Icons.emergency, color: Colors.white),
             heroTag: 'sos',
           ),
+          const SizedBox(height: 16),
+          // New Dashboard Button
+          FloatingActionButton(
+            onPressed: () {
+              if (AuthService.isLoggedIn) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => UserDashboardScreen(),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please sign in to view your trips')),
+                );
+              }
+            },
+            child: const Icon(Icons.dashboard),
+            tooltip: 'My Trips',
+            heroTag: 'dashboard',
+          ),
         ],
       ),
-// ...existing code...
-      
     );
-    
   }
+
 
   Widget _buildHeader() {
     return Container(

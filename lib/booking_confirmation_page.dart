@@ -4,6 +4,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'home_screen.dart';
+import 'services/auth_service.dart';
+import 'models/user_trip_model.dart';
+import 'services/user_dashboard_service.dart';
 
 class BookingConfirmationPage extends StatefulWidget {
   final Map<String, dynamic> bookingData;
@@ -89,6 +92,38 @@ Happy Journey! 🚌✨
     
     Share.share(shareText);
   }
+// In your booking_confirmation_page.dart, add this after successful booking:
+void _createUserTrip() async {
+  final user = AuthService.currentUser;
+  if (user == null) return;
+
+  UserTrip trip = UserTrip(
+    id: '', // Will be set by Firestore
+    userId: user.uid,
+    busId: widget.bookingData['busId'] ?? '',
+    routeId: widget.bookingData['routeId'] ?? '',
+    bookingId: widget.bookingData['bookingId'] ?? '',
+    fromStopId: widget.bookingData['fromStopId'] ?? '',
+    toStopId: widget.bookingData['toStopId'] ?? '',
+    fromStopName: widget.bookingData['from'] ?? '',
+    toStopName: widget.bookingData['to'] ?? '',
+    seatNumbers: List<String>.from(widget.bookingData['selectedSeats'] ?? []),
+    departureTime: DateTime.now().add(Duration(hours: 2)), // Set actual departure
+    bookingDate: DateTime.now(),
+    status: 'upcoming',
+    totalFare: widget.bookingData['totalFare']?.toDouble() ?? 0.0,
+    paymentMethod: widget.bookingData['paymentMethod'] ?? '',
+    busNumber: widget.bookingData['busNumber'] ?? '',
+    smsAlertsEnabled: false,
+  );
+
+  try {
+    final dashboardService = UserDashboardService();
+    await dashboardService.createTrip(trip);
+  } catch (e) {
+    print('Error creating user trip: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
