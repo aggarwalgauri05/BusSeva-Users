@@ -1,22 +1,67 @@
 // home_screen.dart
 import 'package:flutter/material.dart';
-import 'search_results_page.dart'; // Import the new search results page
 import 'map.dart';
+import 'screens/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _quickTrackController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  
+
+  late AnimationController _pulseController;
+  late AnimationController _slideController;
+  late Animation<double> _pulseAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.elasticOut,
+    ));
+
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Header
             _buildHeader(),
-            
+
             // Main content
             Expanded(
               child: SingleChildScrollView(
@@ -34,26 +79,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 20),
-                    
-                    // Search card
-                    _buildSearchCard(),
-                    
-                    const SizedBox(height: 20),
-                    
+                    const SizedBox(height: 30),
+
+                    // Hero Search Section
+                    _buildHeroSearchSection(),
+
+                    const SizedBox(height: 40),
+
                     // Quick track
                     _buildQuickTrack(),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Popular routes
                     _buildPopularRoutes(),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Recent searches (if any)
                     _buildRecentSearches(),
-                    
+
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -72,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -102,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const Text(
-                    'Where are you going?',
+                    'Ready for your journey?',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -129,225 +174,197 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
-  Widget _buildSearchCard() {
+
+  Widget _buildHeroSearchSection() {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667EEA),
+              Color(0xFF764BA2),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF667EEA).withOpacity(0.3),
+              blurRadius: 30,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Bus illustration (using emoji/icon as placeholder)
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.directions_bus,
+                size: 40,
+                color: Colors.white,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              '🚌 Smart Bus Booking',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              'Experience our new AI-powered search\nFind perfect routes in seconds!',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.9),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 32),
+
+            // New Search Button with animation
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _pulseAnimation.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF6B35), Color(0xFFF7931E)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF6B35).withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SearchScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Start Your Journey',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              // REMOVED TEXT: "NEW BETA EXPERIENCE"
+                            ],
+                          ),
+                          const SizedBox(width: 16),
+                          const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            // **FIXED OVERFLOW**: Using Wrap instead of Row
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8.0, // Gap between chips
+              runSpacing: 8.0, // Gap between lines
+              children: [
+                _buildFeatureChip('🔍 Smart Search', Colors.white.withOpacity(0.2)),
+                _buildFeatureChip('⚡ Real-time', Colors.white.withOpacity(0.2)),
+                _buildFeatureChip('🎯 Best Routes', Colors.white.withOpacity(0.2)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureChip(String text, Color backgroundColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.9),
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickTrack() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // From field
-          _buildLocationField(
-            controller: _fromController,
-            label: 'From',
-            hint: 'Current location',
-            icon: Icons.my_location,
-            iconColor: const Color(0xFF10B981),
-          ),
-          
-          // Swap button
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: [
-                const SizedBox(width: 40),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.swap_vert,
-                    color: Color(0xFF6B7280),
-                    size: 20,
-                  ),
-                ),
-                const Spacer(),
-              ],
-            ),
-          ),
-          
-          // To field
-          _buildLocationField(
-            controller: _toController,
-            label: 'To',
-            hint: 'Where to?',
-            icon: Icons.location_on,
-            iconColor: const Color(0xFFEF4444),
-          ),
-          
-          const SizedBox(height: 20),
-          
-          // Date and time
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: _selectDate,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, 
-                            color: Color(0xFF6B7280), size: 20),
-                        const SizedBox(width: 12),
-                        Text(
-                          _formatDate(_selectedDate),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF1F2937),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(width: 12),
-              
-              Expanded(
-                child: GestureDetector(
-                  onTap: _selectTime,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.access_time, 
-                            color: Color(0xFF6B7280), size: 20),
-                        const SizedBox(width: 12),
-                        Text(
-                          _selectedTime.format(context),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF1F2937),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Search button
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _searchBuses,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667EEA),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                'Search Buses',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildLocationField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 20),
-        ),
-        
-        const SizedBox(width: 16),
-        
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 4),
-              TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 16,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildQuickTrack() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -362,59 +379,98 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3B82F6).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.track_changes,
-                  color: Color(0xFF3B82F6),
-                  size: 20,
+                  color: Colors.white,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Quick Track',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '📍 Quick Track',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    Text(
+                      'Track any bus instantly',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          
-          const SizedBox(height: 16),
-          
+
+          const SizedBox(height: 20),
+
           TextField(
             controller: _quickTrackController,
             decoration: InputDecoration(
-              hintText: 'Enter bus number or scan QR',
+              hintText: 'Enter bus number (e.g., DL-1234)',
               hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-              prefixIcon: const Icon(Icons.directions_bus, color: Color(0xFF6B7280)),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF3B82F6)),
-                onPressed: _scanQR,
+              prefixIcon: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.directions_bus, color: Color(0xFF3B82F6)),
+              ),
+              suffixIcon: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  onPressed: _scanQR,
+                ),
               ),
               filled: true,
               fillColor: const Color(0xFFF9FAFB),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
               ),
             ),
           ),
-          
-          const SizedBox(height: 12),
-          
+
+          const SizedBox(height: 16),
+
           SizedBox(
             width: double.infinity,
-            height: 48,
+            height: 56,
             child: ElevatedButton(
               onPressed: () {
                 if (_quickTrackController.text.isNotEmpty) {
@@ -426,15 +482,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                shadowColor: const Color(0xFF3B82F6).withOpacity(0.3),
               ),
-              child: const Text(
-                'Track Bus',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.my_location),
+                  SizedBox(width: 8),
+                  Text(
+                    'Track Bus Live',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -442,43 +506,68 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _buildPopularRoutes() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Popular Routes',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1F2937),
-          ),
+        Row(
+          children: [
+            const Text(
+              '🔥 Popular Routes',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchScreen()),
+                );
+              },
+              child: const Text('See All'),
+            ),
+          ],
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         SizedBox(
-          height: 120,
+          height: 140,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: _popularRoutes.length,
             itemBuilder: (context, index) {
               final route = _popularRoutes[index];
               return Container(
-                width: 200,
+                width: 220,
                 margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white,
+                      const Color(0xFFF8FAFC),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
                     ),
                   ],
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,12 +575,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Row(
                       children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF667EEA).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.route,
+                            color: Color(0xFF667EEA),
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '${route['from']} → ${route['to']}',
                             style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                               color: Color(0xFF1F2937),
                             ),
                             maxLines: 2,
@@ -500,32 +602,42 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    
+
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF10B981), Color(0xFF059669)],
+                            ),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             '₹${route['fare']}',
                             style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF10B981),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ),
-                        
+
                         const Spacer(),
-                        
-                        Text(
-                          '${route['duration']} min',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF6B7280),
+
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${route['duration']}m',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF6B7280),
+                            ),
                           ),
                         ),
                       ],
@@ -539,50 +651,65 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-  
+
   Widget _buildRecentSearches() {
-    // This would be populated from shared preferences or database
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Recent Searches',
+          '⏰ Recent Searches',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Color(0xFF1F2937),
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: const Center(
+          child: Center(
             child: Column(
               children: [
-                Icon(
-                  Icons.history,
-                  color: Color(0xFFD1D5DB),
-                  size: 40,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3F4F6),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.history,
+                    color: Color(0xFF9CA3AF),
+                    size: 40,
+                  ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'No recent searches',
+                const SizedBox(height: 16),
+                const Text(
+                  'No recent searches yet',
                   style: TextStyle(
                     color: Color(0xFF6B7280),
                     fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your search history will appear here',
+                  style: TextStyle(
+                    color: const Color(0xFF6B7280).withOpacity(0.7),
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -592,25 +719,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-  
+
+  // Keep all the existing methods unchanged
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Morning';
     if (hour < 17) return 'Afternoon';
     return 'Evening';
   }
-  
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
     final dateOnly = DateTime(date.year, date.month, date.day);
-    
+
     if (dateOnly == today) return 'Today';
     if (dateOnly == tomorrow) return 'Tomorrow';
     return '${date.day}/${date.month}/${date.year}';
   }
-  
+
   void _selectDate() async {
     final date = await showDatePicker(
       context: context,
@@ -624,7 +752,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-  
+
   void _selectTime() async {
     final time = await showTimePicker(
       context: context,
@@ -636,33 +764,9 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-  
-  void _searchBuses() {
-    if (_fromController.text.isEmpty || _toController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter both pickup and destination locations'),
-          backgroundColor: Color(0xFFEF4444),
-        ),
-      );
-      return;
-    }
-  
-     Navigator.push(
-       context,
-       MaterialPageRoute(
-         builder: (context) => SearchResultsPage(
-           from: _fromController.text,
-           to: _toController.text,
-           date: _selectedDate,
-           time: _selectedTime,
-         ),
-       ),
-     );
-  }
-  
+
+
   void _scanQR() {
-    // TODO: Implement QR scanner
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('QR Scanner will be implemented'),
@@ -670,10 +774,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   void _trackBus(String busNumber) {
-    // Navigate to bus tracking screen
-    // --- REPLACE THE OLD METHOD WITH THIS ---
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -681,7 +783,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   void _showSOSDialog() {
     showDialog(
       context: context,
@@ -726,9 +828,8 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-  
+
   void _activateSOS() {
-    // TODO: Implement SOS functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Emergency alert sent to authorities'),
@@ -737,7 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   final List<Map<String, dynamic>> _popularRoutes = [
     {
       'from': 'City Center',
