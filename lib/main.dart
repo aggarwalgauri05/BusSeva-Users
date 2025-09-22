@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 // Import the necessary pages
-import 'language_selection.dart';
 import 'home_screen.dart'; // Corrected import
 import 'splash_screen.dart'; // New import for the splash screen
 
