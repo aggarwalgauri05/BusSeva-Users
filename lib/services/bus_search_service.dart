@@ -226,7 +226,7 @@ class BusSearchService {
       // In a real app, you'd have a cities collection
       // For now, return a mock list based on common Indian cities
       List<String> cities = [
-        'Delhi', 'Agra', 'Amritsar', 'Lucknow', 'Chennai', 'Kolkata',
+        'Delhi', 'Agra', 'Amritsar', 'Lucknow', 'Jaipur', 'Kolkata',
         'Pune', 'Ahmedabad', 'Jaipur', 'Surat', 'Lucknow', 'Kanpur',
         'Nagpur', 'Patna', 'Indore', 'Thane', 'Bhopal', 'Visakhapatnam',
         'Pimpri-Chinchwad', 'Vadodara', 'Agra', 'Nashik', 'Faridabad',

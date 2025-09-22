@@ -1,8 +1,6 @@
 // booking_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:bus_seva/booking_confirmation_page.dart'; // We'll create this next
-
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic> busData;
 
@@ -43,7 +41,7 @@ class _BookingPageState extends State<BookingPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BookingConfirmationPage(busData: widget.busData),
+        builder: (context) => BookingConfirmationPage(bookingData: widget.busData),
       ),
     );
   }

@@ -2,7 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/bus_search_service.dart';
+import '../services/auth_service.dart';  // ADD THIS LINE
 import '../models/route_model.dart';
+import 'phone_otp_screen.dart';
+import 'seat_selection_screen.dart';      // ADD THIS LINE
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -23,15 +26,14 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _maxFareController = TextEditingController();
   final TextEditingController _maxDurationController = TextEditingController();
   final TextEditingController _departureAfterController = TextEditingController();
-  
   DateTime _selectedDate = DateTime.now();
-  
+
   @override
   void initState() {
     super.initState();
     _loadPopularRoutes();
   }
-  
+
   @override
   void dispose() {
     _fromController.dispose();
@@ -41,7 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
     _departureAfterController.dispose();
     super.dispose();
   }
-  
+
   void _loadPopularRoutes() async {
     try {
       List<BusRoute> routes = await _searchService.getPopularRoutes();
@@ -52,17 +54,17 @@ class _SearchScreenState extends State<SearchScreen> {
       print('Error loading popular routes: $e');
     }
   }
-  
+
   void _searchRoutes() async {
     if (_fromController.text.trim().isEmpty || _toController.text.trim().isEmpty) {
       _showSnackBar('Please select both origin and destination cities');
       return;
     }
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       List<RouteSearchResult> results = await _searchService.searchRoutes(
         fromCity: _fromController.text,
@@ -71,12 +73,12 @@ class _SearchScreenState extends State<SearchScreen> {
         maxDuration: _maxDurationController.text.isNotEmpty ? _maxDurationController.text : null,
         departureAfter: _departureAfterController.text.isNotEmpty ? _departureAfterController.text : null,
       );
-      
+
       setState(() {
         _searchResults = results;
         _isLoading = false;
       });
-      
+
       if (results.isEmpty) {
         _showSnackBar('No routes found for the selected cities');
       }
@@ -88,7 +90,7 @@ class _SearchScreenState extends State<SearchScreen> {
       print('Search error: $e');
     }
   }
-  
+
   void _swapCities() {
     String temp = _fromController.text;
     setState(() {
@@ -96,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _toController.text = temp;
     });
   }
-  
+
   void _clearFilters() {
     setState(() {
       _maxFareController.clear();
@@ -104,7 +106,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _departureAfterController.clear();
     });
   }
-  
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -114,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,7 +164,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  
                   // From and To inputs
                   Row(
                     children: [
@@ -207,9 +208,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ],
                   ),
-                  
                   SizedBox(height: 16),
-                  
                   // Date picker
                   InkWell(
                     onTap: _selectDate,
@@ -233,54 +232,49 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
                   ),
-                  
                   SizedBox(height: 16),
-                  
                   // Filter toggle and search button
-                  // This is the corrected code
-
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    TextButton.icon(
-      onPressed: () {
-        setState(() {
-          _showFilters = !_showFilters;
-        });
-      },
-      icon: Icon(Icons.tune),
-      label: Text('Filters'),
-      style: TextButton.styleFrom(
-        foregroundColor: Colors.blue[600],
-      ),
-    ),
-    Flexible( // Add this widget
-      child: ElevatedButton.icon(
-        onPressed: _isLoading ? null : _searchRoutes,
-        icon: _isLoading
-            ? SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Icon(Icons.search),
-        label: Text(_isLoading ? 'Searching...' : 'Search Buses'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue[600],
-          foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    ), // And close it here
-  ],
-),
-                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _showFilters = !_showFilters;
+                          });
+                        },
+                        icon: Icon(Icons.tune),
+                        label: Text('Filters'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.blue[600],
+                        ),
+                      ),
+                      Flexible(
+                        child: ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _searchRoutes,
+                          icon: _isLoading
+                              ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(Colors.white),
+                                  ),
+                                )
+                              : Icon(Icons.search),
+                          label: Text(_isLoading ? 'Searching...' : 'Search Buses'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[600],
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   // Filters section
                   if (_showFilters) ...[
                     SizedBox(height: 16),
@@ -335,20 +329,20 @@ Row(
                 ],
               ),
             ),
-            
+
             // Search Results
             if (_searchResults.isNotEmpty)
               _buildSearchResults()
             else if (!_isLoading && _searchResults.isEmpty && _fromController.text.isEmpty)
               _buildPopularRoutes(),
-              
+
             if (_isLoading)
               Container(
                 padding: EdgeInsets.all(32),
                 child: Column(
                   children: [
                     CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+                      valueColor: AlwaysStoppedAnimation(Colors.blue[600]!),
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -361,7 +355,7 @@ Row(
                   ],
                 ),
               ),
-              
+
             // No results message
             if (!_isLoading && _searchResults.isEmpty && _fromController.text.isNotEmpty)
               Container(
@@ -399,7 +393,7 @@ Row(
       ),
     );
   }
-  
+
   Widget _buildCityInput({
     required TextEditingController controller,
     required String label,
@@ -440,7 +434,7 @@ Row(
       ],
     );
   }
-  
+
   Widget _buildFilterInput({
     required TextEditingController controller,
     required String label,
@@ -464,7 +458,7 @@ Row(
       ),
     );
   }
-  
+
   void _showCityPicker(TextEditingController controller) {
     showModalBottomSheet(
       context: context,
@@ -480,7 +474,7 @@ Row(
       ),
     );
   }
-  
+
   void _selectDate() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -488,30 +482,27 @@ Row(
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 30)),
     );
-    
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
       });
     }
   }
-  
+
   String _formatDate(DateTime date) {
     List<String> months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    
     List<String> weekdays = [
       'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
     ];
-    
+
     String weekday = weekdays[date.weekday - 1];
     String month = months[date.month - 1];
-    
     return '$weekday, ${date.day} $month ${date.year}';
   }
-  
+
   Widget _buildSearchResults() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
@@ -554,7 +545,7 @@ Row(
       ),
     );
   }
-  
+
   Widget _buildPopularRoutes() {
     if (_popularRoutes.isEmpty) {
       return Container(
@@ -578,7 +569,7 @@ Row(
         ),
       );
     }
-    
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -606,7 +597,7 @@ Row(
               BusRoute route = _popularRoutes[index];
               String fromCity = route.stops.isNotEmpty ? route.stops.first.city : '';
               String toCity = route.stops.isNotEmpty ? route.stops.last.city : '';
-              
+
               return InkWell(
                 onTap: () {
                   setState(() {
@@ -666,9 +657,9 @@ Row(
 // Route Card Widget
 class RouteCard extends StatelessWidget {
   final RouteSearchResult result;
-  
+
   const RouteCard({Key? key, required this.result}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -720,9 +711,8 @@ class RouteCard extends StatelessWidget {
               ),
             ],
           ),
-          
           SizedBox(height: 12),
-          
+
           // Route details
           Row(
             children: [
@@ -741,9 +731,8 @@ class RouteCard extends StatelessWidget {
               ),
             ],
           ),
-          
           SizedBox(height: 8),
-          
+
           // Time and fare row
           Row(
             children: [
@@ -771,7 +760,7 @@ class RouteCard extends StatelessWidget {
               ),
             ],
           ),
-          
+
           // Next bus info
           if (result.nextBus != null) ...[
             SizedBox(height: 12),
@@ -814,9 +803,9 @@ class RouteCard extends StatelessWidget {
               ),
             ),
           ],
-          
+
           SizedBox(height: 12),
-          
+
           // View details button
           SizedBox(
             width: double.infinity,
@@ -852,9 +841,9 @@ class RouteCard extends StatelessWidget {
 // City Picker Bottom Sheet
 class CityPickerBottomSheet extends StatefulWidget {
   final Function(String) onCitySelected;
-  
+
   const CityPickerBottomSheet({Key? key, required this.onCitySelected}) : super(key: key);
-  
+
   @override
   _CityPickerBottomSheetState createState() => _CityPickerBottomSheetState();
 }
@@ -865,20 +854,20 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
   List<String> _cities = [];
   List<String> _filteredCities = [];
   bool _isLoading = true;
-  
+
   @override
   void initState() {
     super.initState();
     _loadCities();
     _searchController.addListener(_filterCities);
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   void _loadCities() async {
     try {
       List<String> cities = await _searchService.searchCities('');
@@ -894,7 +883,7 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
       print('Error loading cities: $e');
     }
   }
-  
+
   void _filterCities() {
     String query = _searchController.text.toLowerCase();
     setState(() {
@@ -903,7 +892,7 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
           .toList();
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -920,9 +909,7 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
           SizedBox(height: 16),
-          
           Text(
             'Select City',
             style: TextStyle(
@@ -930,9 +917,8 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          
           SizedBox(height: 16),
-          
+
           // Search field
           TextField(
             controller: _searchController,
@@ -948,9 +934,8 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
               ),
             ),
           ),
-          
           SizedBox(height: 16),
-          
+
           // Cities list
           Expanded(
             child: _isLoading
@@ -997,9 +982,9 @@ class _CityPickerBottomSheetState extends State<CityPickerBottomSheet> {
 // Route Details Screen
 class RouteDetailsScreen extends StatelessWidget {
   final RouteSearchResult result;
-  
+
   const RouteDetailsScreen({Key? key, required this.result}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1048,9 +1033,9 @@ class RouteDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Next bus info
             if (result.nextBus != null) ...[
               Text(
@@ -1118,7 +1103,7 @@ class RouteDetailsScreen extends StatelessWidget {
               ),
               SizedBox(height: 20),
             ],
-            
+
             // All stops
             Text(
               'All Stops',
@@ -1128,7 +1113,6 @@ class RouteDetailsScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 12),
-            
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1148,10 +1132,10 @@ class RouteDetailsScreen extends StatelessWidget {
                   RouteStop stop = entry.value;
                   bool isFromStop = stop.id == result.fromStop.id;
                   bool isToStop = stop.id == result.toStop.id;
-                  bool isBetween = stop.stopOrder > result.fromStop.stopOrder && 
-                                   stop.stopOrder < result.toStop.stopOrder;
+                  bool isBetween = stop.stopOrder > result.fromStop.stopOrder &&
+                      stop.stopOrder < result.toStop.stopOrder;
                   bool isLast = index == result.route.stops.length - 1;
-                  
+
                   return Column(
                     children: [
                       Container(
@@ -1168,9 +1152,9 @@ class RouteDetailsScreen extends StatelessWidget {
                                   width: 12,
                                   height: 12,
                                   decoration: BoxDecoration(
-                                    color: isFromStop ? Colors.green : 
-                                           isToStop ? Colors.red : 
-                                           isBetween ? Colors.blue : Colors.grey,
+                                    color: isFromStop ? Colors.green :
+                                        isToStop ? Colors.red :
+                                        isBetween ? Colors.blue : Colors.grey,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -1228,19 +1212,19 @@ class RouteDetailsScreen extends StatelessWidget {
                 }).toList(),
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Book now button
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 onPressed: result.activeBuses > 0 ? () {
-                  _showBookingDialog(context);
+                  _showBookingDialog(context, result);
                 } : null,
                 child: Text(
-                  result.activeBuses > 0 ? 'Book Now - ₹${result.fare}' : 'No Buses Available',
+                  result.activeBuses > 0 ? 'Book Seats - ₹${result.fare}' : 'No Buses Available',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1255,14 +1239,14 @@ class RouteDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
-  
+
   Widget _buildSummaryRow(IconData icon, String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),
@@ -1284,34 +1268,49 @@ class RouteDetailsScreen extends StatelessWidget {
       ),
     );
   }
-  
-  void _showBookingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.blue[600]),
-            SizedBox(width: 8),
-            Text('Coming Soon!'),
-          ],
+}
+
+// UPDATED BOOKING DIALOG METHOD
+void _showBookingDialog(BuildContext context, RouteSearchResult result) {
+  // Check if user is already logged in
+  if (AuthService.isLoggedIn) {
+    // Direct to seat selection for logged-in users
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SeatSelectionScreen(
+          bookingData: {
+            'from': result.fromStop.name,
+            'to': result.toStop.name,
+            'busNumber': result.nextBus?['busNumber'] ?? 'BUS-001',
+            'fare': result.fare,
+            'busName': 'Express Service',
+            'rating': 4.2,
+            'duration': result.estimatedDuration,
+            'travelDate': DateTime.now().add(Duration(hours: 2)),
+            'distance': result.distance,
+          },
         ),
-        content: Text(
-          'Seat booking and payment functionality will be available in the next update. Stay tuned!',
+      ),
+    );
+  } else {
+    // Phone OTP verification for guests
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhoneOTPScreen(
+          bookingData: {
+            'from': result.fromStop.name,
+            'to': result.toStop.name,
+            'busNumber': result.nextBus?['busNumber'] ?? 'BUS-001',
+            'fare': result.fare,
+            'busName': 'Express Service',
+            'rating': 4.2,
+            'duration': result.estimatedDuration,
+            'travelDate': DateTime.now().add(Duration(hours: 2)),
+            'distance': result.distance,
+          },
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // You can add notification sign-up functionality here
-            },
-            child: Text('Notify Me'),
-          ),
-        ],
       ),
     );
   }

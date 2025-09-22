@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'map.dart';
 import 'screens/search_screen.dart';
-
+import 'services/sample_data_service.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -107,15 +107,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Emergency SOS
-          _showSOSDialog();
-        },
-        backgroundColor: const Color(0xFFEF4444),
-        child: const Icon(Icons.emergency, color: Colors.white),
+      // ...existing code...
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            onPressed: () async {
+              try {
+                await SampleDataService.setupSampleData();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('✅ Sample data setup completed!')),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('❌ Setup failed: $e')),
+                );
+              }
+            },
+            tooltip: 'Setup Sample Data',
+            child: const Icon(Icons.cloud_upload),
+            heroTag: 'sampleData',
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            onPressed: () {
+              // Emergency SOS
+              _showSOSDialog();
+            },
+            backgroundColor: const Color(0xFFEF4444),
+            child: const Icon(Icons.emergency, color: Colors.white),
+            heroTag: 'sos',
+          ),
+        ],
       ),
+// ...existing code...
+      
     );
+    
   }
 
   Widget _buildHeader() {
