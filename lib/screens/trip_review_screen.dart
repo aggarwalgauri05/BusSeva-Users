@@ -434,7 +434,6 @@ class _TripReviewScreenState extends State<TripReviewScreen> {
         isVerified: true, // User has completed trip
       );
       
-      await _reviewService.submitReview(review);
       
       Navigator.pushAndRemoveUntil(
         context,

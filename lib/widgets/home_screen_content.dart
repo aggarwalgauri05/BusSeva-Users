@@ -1,9 +1,13 @@
+
+import 'package:bus_seva/screens/chatbot_screen.dart';
 import 'package:bus_seva/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import '../screens/search_screen.dart';
 import '../map.dart';
 import '../services/sample_data_service.dart';
 import '../services/auth_service.dart';
+import '../screens/recommendations_screen.dart';
+import '../services/recommendation_service.dart';
 
 class HomeScreenContent extends StatefulWidget {
   const HomeScreenContent({Key? key}) : super(key: key);
@@ -100,22 +104,17 @@ class _HomeScreenContentState extends State<HomeScreenContent>
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
-            onPressed: () async {
-              try {
-                await SampleDataService.setupSampleData();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Sample data setup completed!')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('❌ Setup failed: $e')),
-                );
-              }
-            },
-            tooltip: 'Setup Sample Data',
-            child: const Icon(Icons.cloud_upload),
-            heroTag: 'sampleData',
-          ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+        );
+      },
+      backgroundColor: const Color(0xFF667EEA),
+      child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+      heroTag: 'chatbot',
+    ),
+
           const SizedBox(height: 16),
           FloatingActionButton(
             onPressed: _showSOSDialog,
@@ -266,6 +265,8 @@ class _HomeScreenContentState extends State<HomeScreenContent>
             const SizedBox(height: 32),
 
             // Search Button with animation
+            
+            // Search Button with animation
             AnimatedBuilder(
               animation: _pulseAnimation,
               builder: (context, child) {
@@ -322,6 +323,52 @@ class _HomeScreenContentState extends State<HomeScreenContent>
                 );
               },
             ),
+
+            const SizedBox(height: 20), // Add this spacing
+
+            // New Recommendations Button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RecommendationsScreen()),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                icon: const Icon(Icons.recommend, color: Colors.white),
+                label: const Text(
+                  'Get Recommendations',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Feature chips
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: [
+                _buildFeatureChip('🔍 Smart Search', Colors.white.withOpacity(0.2)),
+                _buildFeatureChip('⚡ Real-time', Colors.white.withOpacity(0.2)),
+                _buildFeatureChip('🎯 Best Routes', Colors.white.withOpacity(0.2)),
+              ],
+            ),
+
 
             const SizedBox(height: 20),
 

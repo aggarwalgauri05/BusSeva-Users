@@ -1,4 +1,5 @@
 // home_screen.dart
+import 'package:bus_seva/screens/chatbot_screen.dart';
 import 'package:flutter/material.dart';
 import 'map.dart';
 import 'screens/search_screen.dart';
@@ -101,57 +102,45 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
       // Floating buttons
       floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            onPressed: () async {
-              try {
-                await SampleDataService.setupSampleData();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Sample data setup completed!')),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('❌ Setup failed: $e')),
-                );
-              }
-            },
-            tooltip: 'Setup Sample Data',
-            child: const Icon(Icons.cloud_upload),
-            heroTag: 'sampleData',
-          ),
-          const SizedBox(height: 16),
-          FloatingActionButton(
-            onPressed: () {
-              _showSOSDialog();
-            },
-            backgroundColor: const Color(0xFFEF4444),
-            child: const Icon(Icons.emergency, color: Colors.white),
-            heroTag: 'sos',
-          ),
-          const SizedBox(height: 16),
-          // New Dashboard Button
-          FloatingActionButton(
-            onPressed: () {
-              if (AuthService.isLoggedIn) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserDashboardScreen(),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please sign in to view your trips')),
-                );
-              }
-            },
-            child: const Icon(Icons.dashboard),
-            tooltip: 'My Trips',
-            heroTag: 'dashboard',
-          ),
-        ],
-      ),
+  mainAxisSize: MainAxisSize.min,
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+    // Chatbot FAB
+    FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+        );
+      },
+      backgroundColor: const Color(0xFF667EEA),
+      child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+      heroTag: 'chatbot',
+    ),
+    const SizedBox(height: 16),
+
+    // Dashboard FAB
+    FloatingActionButton(
+      heroTag: 'dashboard',
+      onPressed: () {
+        if (AuthService.isLoggedIn) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserDashboardScreen(),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please sign in to view your trips')),
+          );
+        }
+      },
+      child: const Icon(Icons.dashboard),
+      tooltip: 'My Trips',
+    ),
+  ],
+),
     );
   }
 

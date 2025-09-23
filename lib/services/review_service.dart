@@ -1,23 +1,51 @@
 // lib/services/review_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/review_model.dart';
-
 class ReviewService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
   // Submit a new review
-  Future<String> submitReview(BusReview review) async {
+  // The new method to submit a review with full details.
+  Future<void> submitFullReview({
+    required String tripId,
+    required String busId,
+    required String busNumber,
+    required String userId,
+    required double overallRating,
+    required double driverRating,
+    required double cleanlinessRating,
+    required double punctualityRating,
+    required double comfortRating,
+    required String comment,
+    required String route,
+  }) async {
     try {
-      DocumentReference docRef = await _firestore
-          .collection('reviews')
-          .add(review.toMap());
-      
-      // Update bus average rating
-      await _updateBusRating(review.busId);
-      
-      return docRef.id;
+      // Create a document reference
+      DocumentReference docRef = await _firestore.collection('reviews').add({
+        'tripId': tripId,
+        'busId': busId,
+        'busNumber': busNumber,
+        'userId': userId,
+        'overallRating': overallRating,
+        'driverRating': driverRating,
+        'cleanlinessRating': cleanlinessRating,
+        'punctualityRating': punctualityRating,
+        'comfortRating': comfortRating,
+        'comment': comment,
+        'createdAt': FieldValue.serverTimestamp(),
+        'route': route,
+      });
+
+      // Update the trip as reviewed for the user
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('trips')
+          .doc(tripId)
+          .set({'reviewed': true}, SetOptions(merge: true));
+
     } catch (e) {
-      print('Error submitting review: $e');
+      print('Error submitting full review: $e');
       throw e;
     }
   }
@@ -90,14 +118,15 @@ class ReviewService {
       }
       
       // Update bus document with new ratings
-      await _firestore.collection('buses').doc(busId).update({
-        'ratings.overall': totalOverall / count,
-        'ratings.cleanliness': totalCleanliness / count,
-        'ratings.punctuality': totalPunctuality / count,
-        'ratings.safety': totalSafety / count,
-        'ratings.driver': totalDriver / count,
-        'ratings.totalReviews': count,
-      });
+     await _firestore.collection('buses').doc(busId).set({
+  'ratings.overall': totalOverall / count,
+  'ratings.cleanliness': totalCleanliness / count,
+  'ratings.punctuality': totalPunctuality / count,
+  'ratings.safety': totalSafety / count,
+  'ratings.driver': totalDriver / count,
+  'ratings.totalReviews': count,
+}, SetOptions(merge: true));
+
       
     } catch (e) {
       print('Error updating bus rating: $e');

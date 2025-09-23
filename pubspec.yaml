@@ -10,7 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+  http: ^1.1.0
+  google_generative_ai: ^0.4.3
   # Existing dependencies
   qr_flutter: ^4.0.0
   cupertino_icons: ^1.0.8
@@ -25,7 +26,7 @@ dependencies:
   google_maps_flutter: ^2.13.1
   location: ^8.0.1
   geolocator: ^14.0.2
-  
+  flutter_dotenv: ^5.1.0
   # New dependencies for enhanced features
   share_plus: ^10.0.3
   url_launcher: ^6.1.14
