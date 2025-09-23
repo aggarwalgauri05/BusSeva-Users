@@ -1,4 +1,5 @@
 // lib/screens/user_dashboard_screen.dart
+import 'package:bus_seva/screens/in_trip_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/user_trip_model.dart';
@@ -7,7 +8,7 @@ import '../services/auth_service.dart';
 import 'trip_detail_screen.dart';
 import 'live_tracking_page.dart';
 import '../home_screen.dart';
-
+import 'in_trip_dashboard_screen.dart';
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({Key? key}) : super(key: key);
 
@@ -19,7 +20,14 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
     with TickerProviderStateMixin {
   final UserDashboardService _dashboardService = UserDashboardService();
   late TabController _tabController;
-  
+  void _openInTripDashboard(UserTrip trip) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => InTripDashboardScreen(trip: trip),
+    ),
+  );
+}
   @override
   void initState() {
     super.initState();
@@ -427,22 +435,39 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
 
         // Action buttons
         Row(
-          children: [
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _showTripDetails(trip),
+              icon: Icon(Icons.info_outline, size: 16),
+              label: Text('Details', style: TextStyle(fontSize: 12)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Color(0xFF667EEA),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          if (trip.status == 'ongoing') // ADD THIS CONDITION
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _showTripDetails(trip),
-                icon: Icon(Icons.info_outline, size: 16),
-                label: Text('Details', style: TextStyle(fontSize: 12)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Color(0xFF667EEA),
+              child: ElevatedButton.icon(
+                onPressed: () => _openInTripDashboard(trip), // NEW METHOD
+                icon: Icon(Icons.dashboard, size: 16),
+                label: Text('Trip', style: TextStyle(fontSize: 12)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFEF4444), // Red for active trip
+                  foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: 8),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
-            ),
-            SizedBox(width: 8),
+            )
+          else
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () => _trackBusLive(trip),
@@ -458,26 +483,27 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
                 ),
               ),
             ),
-            SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => _shareTripDetails(trip),
-                icon: Icon(Icons.share, size: 16),
-                label: Text('Share', style: TextStyle(fontSize: 12)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Color(0xFF6B7280),
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+          SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _shareTripDetails(trip),
+              icon: Icon(Icons.share, size: 16),
+              label: Text('Share', style: TextStyle(fontSize: 12)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Color(0xFF6B7280),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-          ],
-        ),
-      ],
-    );
-  }
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
 
   Widget _buildBusStatusSection(UserTrip trip, Map<String, dynamic> busStatus) {
     final busData = busStatus['busData'] as Map<String, dynamic>;
@@ -862,4 +888,5 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
       ),
     );
   }
+  
 }

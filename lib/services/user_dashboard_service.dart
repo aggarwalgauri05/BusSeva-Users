@@ -180,6 +180,38 @@ class UserDashboardService {
       throw e;
     }
   }
+// Add to user_dashboard_service.dart
+Future<void> updateTripStatus(String tripId, String newStatus) async {
+  try {
+    await _firestore
+        .collection('user_trips')
+        .doc(tripId)
+        .update({
+          'status': newStatus,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+  } catch (e) {
+    print('Error updating trip status: $e');
+    throw e;
+  }
+}
+
+// Add method to trigger trip completion
+Future<void> completeTripWithSummary(String tripId, Map<String, dynamic> summary) async {
+  try {
+    await _firestore
+        .collection('user_trips')
+        .doc(tripId)
+        .update({
+          'status': 'completed',
+          'completedAt': FieldValue.serverTimestamp(),
+          'tripSummary': summary,
+        });
+  } catch (e) {
+    print('Error completing trip: $e');
+    throw e;
+  }
+}
 
   // Report ghost bus
   Future<void> reportGhostBus(String busId, String reason) async {
