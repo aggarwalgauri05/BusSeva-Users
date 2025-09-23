@@ -1,4 +1,5 @@
 // booking_page.dart
+import 'package:bus_seva/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_seva/booking_confirmation_page.dart'; // We'll create this next
 class BookingPage extends StatefulWidget {
@@ -24,7 +25,25 @@ class _BookingPageState extends State<BookingPage> {
     super.dispose();
   }
 
+  // Add this method inside your state class
+  bool _checkAuthenticationForBooking() {
+    if (!AuthService.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in to continue booking'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.pushNamed(context, '/signin'); // or your sign-in route
+      return false;
+    }
+    return true;
+  }
+
   void _bookTicket() {
+    // Call check auth first
+    if (!_checkAuthenticationForBooking()) return;  // Abort if not logged in
+
     // Basic validation
     if (_nameController.text.isEmpty || _phoneController.text.isEmpty || _selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(

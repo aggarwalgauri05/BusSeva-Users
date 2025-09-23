@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'onboarding_screen.dart';
-
+import 'widgets/bottom_navigation.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
   @override
@@ -51,20 +51,28 @@ class _SplashScreenState extends State<SplashScreen>
     });
     
     // Navigate after delay
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 800),
-        ),
-      );
-    });
-  }
+    // Navigate after delay
+Timer(const Duration(seconds: 3), () {
+  Navigator.pushReplacement(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+      transitionDuration: const Duration(milliseconds: 800),
+    ),
+  );
+});
 
+
+  }
+  void _navigateToNext() {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+  );
+}
   @override
   void dispose() {
     _fadeController.dispose();

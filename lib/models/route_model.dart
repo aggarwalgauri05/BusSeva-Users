@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Import the new package
-
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 class RouteStop {
   final String id;
   final String name;
@@ -70,6 +70,7 @@ class BusRoute {
     required this.operatingDays,
   });
 
+  // Existing factory...
   factory BusRoute.fromFirestore(String id, Map<String, dynamic> data) {
     return BusRoute(
       id: id,
@@ -84,6 +85,13 @@ class BusRoute {
       fare: data['fare'] as Map<String, dynamic>?,
       operatingDays: List<String>.from(data['operatingDays'] ?? []),
     );
+  }
+
+  // *** Add this getter ***
+  List<LatLng> get polylinePoints {
+    return stops
+        .map((stop) => LatLng(stop.latitude, stop.longitude))
+        .toList();
   }
 }
 

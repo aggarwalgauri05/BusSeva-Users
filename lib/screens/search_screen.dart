@@ -6,6 +6,7 @@ import '../services/auth_service.dart';  // ADD THIS LINE
 import '../models/route_model.dart';
 import 'phone_otp_screen.dart';
 import 'seat_selection_screen.dart';      // ADD THIS LINE
+import '../sign_in_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -1273,45 +1274,77 @@ class RouteDetailsScreen extends StatelessWidget {
 // UPDATED BOOKING DIALOG METHOD
 void _showBookingDialog(BuildContext context, RouteSearchResult result) {
   // Check if user is already logged in
-  if (AuthService.isLoggedIn) {
-    // Direct to seat selection for logged-in users
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SeatSelectionScreen(
-          bookingData: {
-            'from': result.fromStop.name,
-            'to': result.toStop.name,
-            'busNumber': result.nextBus?['busNumber'] ?? 'BUS-001',
-            'fare': result.fare,
-            'busName': 'Express Service',
-            'rating': 4.2,
-            'duration': result.estimatedDuration,
-            'travelDate': DateTime.now().add(Duration(hours: 2)),
-            'distance': result.distance,
-          },
-        ),
-      ),
-    );
-  } else {
-    // Phone OTP verification for guests
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PhoneOTPScreen(
-          bookingData: {
-            'from': result.fromStop.name,
-            'to': result.toStop.name,
-            'busNumber': result.nextBus?['busNumber'] ?? 'BUS-001',
-            'fare': result.fare,
-            'busName': 'Express Service',
-            'rating': 4.2,
-            'duration': result.estimatedDuration,
-            'travelDate': DateTime.now().add(Duration(hours: 2)),
-            'distance': result.distance,
-          },
-        ),
-      ),
-    );
+  if (!AuthService.isLoggedIn) {
+    _showLoginRequiredForBookingDialog(context);
+    return;
   }
+
+  // Direct to seat selection for logged-in users
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => SeatSelectionScreen(
+        bookingData: {
+          'from': result.fromStop.name,
+          'to': result.toStop.name,
+          'busNumber': result.nextBus?['busNumber'] ?? 'BUS-001',
+          'fare': result.fare,
+          'busName': 'Express Service',
+          'rating': 4.2,
+          'duration': result.estimatedDuration,
+          'travelDate': DateTime.now().add(Duration(hours: 2)),
+          'distance': result.distance,
+        },
+      ),
+    ),
+  );
+}
+
+void _showLoginRequiredForBookingDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.login, color: Color(0xFF667EEA)),
+          SizedBox(width: 8),
+          Text('Login Required'),
+        ],
+      ),
+      content: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Please sign in to book tickets',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'You need an account to book tickets, manage your trips, and access exclusive features.',
+            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+  Navigator.pop(context);  // Close the dialog first
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SignInScreen()),
+  );
+},
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF667EEA),
+          ),
+          child: const Text('Sign In'),
+        ),
+      ],
+    ),
+  );
 }

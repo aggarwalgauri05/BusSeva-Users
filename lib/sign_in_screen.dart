@@ -1,4 +1,5 @@
 // sign_in_screen.dart
+import 'package:bus_seva/widgets/bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'sign_up_screen.dart';
@@ -36,11 +37,10 @@ class _SignInScreenState extends State<SignInScreen> {
         password: _passwordController.text.trim(),
       );
       // On successful sign-in, navigate to the home screen
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false,
-      );
+      Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+);
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -191,10 +191,12 @@ class _SignInScreenState extends State<SignInScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()),
-                      );
+                      Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+  (route) => false,
+);
+
                     },
                     child: const Text(
                       'Continue as Guest',

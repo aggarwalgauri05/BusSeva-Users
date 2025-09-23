@@ -1,4 +1,5 @@
 // welcome_screen.dart
+import 'package:bus_seva/widgets/bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'sign_up_screen.dart';
 import 'sign_in_screen.dart';
@@ -139,9 +140,10 @@ class WelcomeScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () {
                         Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HomeScreen()),
-                        );
+  context,
+  MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+);
+
                       },
                       child: Text(
                         'Continue as Guest',

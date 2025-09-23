@@ -1,4 +1,5 @@
 // sign_up_screen.dart
+import 'package:bus_seva/widgets/bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_screen.dart'; // Make sure you have this import for navigation
@@ -48,10 +49,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       // On successful sign-up, navigate to the home screen
       Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false,
-      );
+  context,
+  MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+  (route) => false,
+);
+
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

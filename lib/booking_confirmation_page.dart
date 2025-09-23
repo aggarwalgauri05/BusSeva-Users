@@ -1,4 +1,5 @@
 // Replace your existing booking_confirmation_page.dart with this enhanced version:
+import 'package:bus_seva/widgets/bottom_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -437,11 +438,10 @@ void _createUserTrip() async {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (route) => false,
-                );
+                Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => const MainBottomNavigation()),
+);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
