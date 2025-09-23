@@ -1,5 +1,6 @@
 // lib/screens/user_dashboard_screen.dart
 import 'package:bus_seva/screens/in_trip_dashboard_screen.dart';
+import 'package:bus_seva/screens/review_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/user_trip_model.dart';
@@ -678,43 +679,39 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
   }
 
   Widget _buildHistoryTripActions(UserTrip trip) {
-    return Row(
-      children: [
+  return Row(
+    children: [
+      Expanded(
+        child: OutlinedButton.icon(
+          onPressed: () => _showTripDetails(trip),
+          icon: const Icon(Icons.receipt, size: 16),
+          label: const Text('View Receipt', style: TextStyle(fontSize: 12)),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF667EEA),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ),
+      if (trip.status == 'completed') ...[
+        const SizedBox(width: 12),
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => _showTripDetails(trip),
-            icon: Icon(Icons.receipt, size: 16),
-            label: Text('View Receipt', style: TextStyle(fontSize: 12)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Color(0xFF667EEA),
-              padding: EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+          child: ElevatedButton.icon(
+            onPressed: () => _navigateToReview(trip),
+            icon: const Icon(Icons.star, size: 16),
+            label: const Text('Review', style: TextStyle(fontSize: 12)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ),
-        if (trip.status == 'completed') ...[
-          SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _showReviewDialog(trip),
-              icon: Icon(Icons.star, size: 16),
-              label: Text('Review', style: TextStyle(fontSize: 12)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF10B981),
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
       ],
-    );
-  }
+    ],
+  );
+}
 
   Widget _buildEmptyState({
     required IconData icon,
@@ -779,7 +776,14 @@ class _UserDashboardScreenState extends State<UserDashboardScreen>
       ),
     );
   }
-
+void _navigateToReview(UserTrip trip) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ReviewScreen(trip: trip),
+    ),
+  );
+}
   void _trackBusLive(UserTrip trip) {
     Navigator.push(
       context,
