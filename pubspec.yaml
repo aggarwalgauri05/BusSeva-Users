@@ -44,6 +44,7 @@ flutter:
     - assets/
     - assets/fonts/
     - assets/images/  # Add this for future image assets
+    - assets/images/bus_hero.png
 
   fonts:
     - family: Cera Pro

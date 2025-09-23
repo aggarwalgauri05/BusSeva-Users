@@ -239,19 +239,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           children: [
             // Bus illustration (using emoji/icon as placeholder)
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.directions_bus,
-                size: 40,
-                color: Colors.white,
-              ),
-            ),
+           Container(
+  width: 80,
+  height: 80,
+  decoration: BoxDecoration(
+    color: Colors.grey.shade300, // light background to check container visibility
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(color: Colors.red, width: 2), // visible border for debugging
+  ),
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: Image.asset(
+      'assets/images/bus_hero.png',
+      width: 80,
+      height: 80,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return const Center(
+          child: Text(
+            'Image\nnot found',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
+    ),
+  ),
+),
+
 
             const SizedBox(height: 24),
 
