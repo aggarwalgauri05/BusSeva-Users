@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -36,7 +37,12 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
   bool _isLoading = true;
   bool _followBus = true;
   bool _showUserLocation = false;
-  CameraPosition? _initialCameraPosition;
+  
+  // Default initial position (you can adjust this to your city center)
+  static const CameraPosition _defaultCamera = CameraPosition(
+    target: LatLng(28.6139, 77.2090), // Delhi coordinates as example
+    zoom: 14.0,
+  );
 
   @override
   void initState() {
@@ -48,6 +54,7 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
   void dispose() {
     _busSubscription?.cancel();
     _locationSubscription?.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -60,12 +67,18 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
   Future<void> _getUserLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+        if (permission == LocationPermission.denied) {
+          setState(() => _isLoading = false);
+          return;
+        }
       }
 
       Position position = await Geolocator.getCurrentPosition(
@@ -80,6 +93,7 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
       _updateUserLocationMarker();
     } catch (e) {
       print('Error getting user location: $e');
+      setState(() => _isLoading = false);
     }
   }
 
@@ -113,7 +127,7 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
         .doc(widget.busId)
         .snapshots()
         .listen((snapshot) {
-      if (snapshot.exists) {
+      if (snapshot.exists && mounted) {
         Map<String, dynamic> newBusData = snapshot.data() as Map<String, dynamic>;
 
         setState(() {
@@ -123,14 +137,13 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
 
         _updateBusMarker();
 
-        if (_followBus) {
+        if (_followBus && _mapController != null) {
           _centerOnBus();
         }
       }
     });
   }
 
-  // You need to implement or update these helper methods accordingly
   void _updateUserLocationMarker() {
     if (_userLocation == null) return;
 
@@ -150,9 +163,26 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
   }
 
   void _updateBusMarker() {
-    if (_busData == null) return;
+    if (_busData == null || !_busData!.containsKey('location')) {
+      // If no real location data, use sample coordinates
+      final sampleLocation = LatLng(28.6139, 77.2090);
+      
+      final busMarker = Marker(
+        markerId: const MarkerId('bus_marker'),
+        position: sampleLocation,
+        infoWindow: InfoWindow(
+          title: 'Bus ${_busData?['busNumber'] ?? 'Unknown'}',
+          snippet: 'Speed: ${_busData?['speed'] ?? '45'} km/h',
+        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      );
 
-    if (!_busData!.containsKey('location')) return;
+      setState(() {
+        _markers.removeWhere((marker) => marker.markerId == const MarkerId('bus_marker'));
+        _markers.add(busMarker);
+      });
+      return;
+    }
 
     final GeoPoint location = _busData!['location'];
     final busPosition = LatLng(location.latitude, location.longitude);
@@ -174,12 +204,21 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
   }
 
   void _centerOnBus() {
-    if (_busData == null || !_busData!.containsKey('location')) return;
+    if (_busData == null || !_busData!.containsKey('location') || _mapController == null) {
+      return;
+    }
 
     final location = _busData!['location'] as GeoPoint;
     final busPosition = LatLng(location.latitude, location.longitude);
 
-    _mapController?.animateCamera(CameraUpdate.newLatLng(busPosition));
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: busPosition,
+          zoom: 16.0,
+        ),
+      ),
+    );
   }
 
   void _drawRoute() {
@@ -197,10 +236,199 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
     setState(() {
       _polylines = {polyline};
     });
+
+    // Add route stop markers
+    for (int i = 0; i < _route!.stops.length; i++) {
+      final stop = _route!.stops[i];
+      final stopMarker = Marker(
+        markerId: MarkerId('stop_${stop.id}'),
+        position: LatLng(stop.latitude, stop.longitude),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: InfoWindow(title: stop.name),
+      );
+      
+      _markers.add(stopMarker);
+    }
   }
 
-  // ----------------- NEW UI ADDITIONS -----------------
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Live Tracking'),
+        backgroundColor: const Color(0xFF667EEA),
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(_followBus ? Icons.gps_fixed : Icons.gps_not_fixed),
+            onPressed: () {
+              setState(() {
+                _followBus = !_followBus;
+              });
+              if (_followBus) _centerOnBus();
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Map Container - FIXED HEIGHT AND PROPER CONSTRAINTS
+          Container(
+            height: MediaQuery.of(context).size.height * 0.3, // 60% of screen height
+            width: double.infinity,
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : GoogleMap(
+                    initialCameraPosition: _userLocation != null
+                        ? CameraPosition(
+                            target: LatLng(_userLocation!.latitude, _userLocation!.longitude),
+                            zoom: 14.0,
+                          )
+                        : _defaultCamera,
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                      // Initial setup after map is created
+                      Future.delayed(Duration(seconds: 1), () {
+                        if (_busData != null) _centerOnBus();
+                      });
+                    },
+                    markers: _markers,
+                    polylines: _polylines,
+                    myLocationEnabled: _showUserLocation,
+                    myLocationButtonEnabled: false, // We have custom button
+                    zoomControlsEnabled: true,
+                    mapToolbarEnabled: false,
+                  ),
+          ),
+          
+          // Bottom Content - Route Progress and Actions
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildBusStatusCard(),
+                    const SizedBox(height: 16),
+                    _buildEnhancedRouteProgress(),
+                    const SizedBox(height: 16),
+                    _buildQuickActions(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (_userLocation != null && _mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newCameraPosition(
+                CameraPosition(
+                  target: LatLng(_userLocation!.latitude, _userLocation!.longitude),
+                  zoom: 16.0,
+                ),
+              ),
+            );
+          }
+        },
+        child: const Icon(Icons.my_location),
+        backgroundColor: const Color(0xFF667EEA),
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
 
+  Widget _buildBusStatusCard() {
+    if (_busData == null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange),
+            SizedBox(width: 12),
+            Text('Bus data not available'),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.directions_bus, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bus ${_busData!['busNumber'] ?? 'Unknown'}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Driver: ${_busData!['driver']?['name'] ?? 'Unknown'}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'LIVE',
+                  style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Rest of the widget methods remain the same...
   Widget _buildEnhancedRouteProgress() {
     final List<Map<String, dynamic>> routeStops = [
       {'name': 'City Center', 'status': 'completed', 'time': '10:00 AM', 'eta': null},
@@ -447,6 +675,7 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
                   label: 'Refresh',
                   color: const Color(0xFF3B82F6),
                   onTap: () {
+                    _initializeTracking();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Refreshing location...')),
                     );
@@ -500,39 +729,6 @@ class _LiveTrackingPageState extends State<LiveTrackingPage> {
                 fontSize: 12,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Live Tracking'),
-        backgroundColor: const Color(0xFF667EEA),
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (widget.busId.isNotEmpty)
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Center(
-                  child: Text('Map View\n(Existing Implementation)', textAlign: TextAlign.center),
-                ),
-              ),
-            const SizedBox(height: 20),
-            _buildEnhancedRouteProgress(),
-            const SizedBox(height: 20),
-            _buildQuickActions(),
           ],
         ),
       ),

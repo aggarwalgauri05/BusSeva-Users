@@ -1,5 +1,4 @@
-// lib/screens/in_trip_dashboard_screen.dart
-// Update the imports in your in_trip_dashboard_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,7 +12,7 @@ import 'emergency_sos_screen.dart';
 import 'harassment_report_screen.dart';
 import 'malfunction_report_screen.dart';
 import 'live_tracking_page.dart';
-
+import 'trip_completion_screen.dart';
 
 class InTripDashboardScreen extends StatefulWidget {
   final UserTrip trip;
@@ -126,7 +125,8 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
                 onPressed: () => Navigator.pop(context),
                 icon: Icon(Icons.arrow_back, color: Colors.white),
               ),
-              Expanded(
+              // FIXED: Use Flexible instead of Expanded to prevent overflow
+              Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -137,23 +137,32 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
+                      // FIXED: Add overflow handling
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min, // FIXED: Add this
                       children: [
                         Icon(Icons.verified_user, color: Colors.green, size: 16),
                         SizedBox(width: 4),
-                        Text(
-                          _getDriverName(),
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        // FIXED: Wrap text with Flexible to prevent overflow
+                        Flexible(
+                          child: Text(
+                            _getDriverName(),
+                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
+              // FIXED: Constrain the status chip
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                constraints: BoxConstraints(maxWidth: 80), // FIXED: Add max width
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getStatusColor().withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -164,8 +173,10 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
                   style: TextStyle(
                     color: _getStatusColor(),
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 10, // FIXED: Reduced font size
                   ),
+                  overflow: TextOverflow.ellipsis, // FIXED: Add overflow handling
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
@@ -202,61 +213,56 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
           ),
           SizedBox(height: 16),
           
-          // Text Route
+          // FIXED: Text Route with proper constraints
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: Column( // FIXED: Changed from Row to Column for better layout
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  _getCurrentStop(),
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    margin: EdgeInsets.symmetric(horizontal: 12),
-                    child: LinearProgressIndicator(
-                      value: _getRouteProgress(),
-                      backgroundColor: Colors.grey,
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
+                // From-To Row
+                Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
+                    SizedBox(width: 8),
+                    Expanded( // FIXED: Use Expanded to prevent overflow
+                      child: Text(
+                        _getCurrentStop(),
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward, size: 16),
+                    SizedBox(width: 8),
+                    Expanded( // FIXED: Use Expanded to prevent overflow
+                      child: Text(
+                        widget.trip.toStopName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF667EEA),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  _getNextStop(),
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                SizedBox(width: 8),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text('→'),
-                SizedBox(width: 8),
-                Text(
-                  widget.trip.toStopName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF667EEA),
-                  ),
+                SizedBox(height: 12),
+                // Progress Bar
+                LinearProgressIndicator(
+                  value: _getRouteProgress(),
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667EEA)),
                 ),
               ],
             ),
@@ -264,27 +270,29 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
           
           SizedBox(height: 16),
           
-          // ETAs
-          Row(
-            children: [
-              Expanded(
-                child: _buildETACard(
-                  'Next Stop',
-                  _getNextStopETA(),
-                  Icons.location_on,
-                  Colors.orange,
+          // ETAs - FIXED: Use IntrinsicHeight for equal height
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildETACard(
+                    'Next Stop',
+                    _getNextStopETA(),
+                    Icons.location_on,
+                    Colors.orange,
+                  ),
                 ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: _buildETACard(
-                  'Destination',
-                  _getDestinationETA(),
-                  Icons.flag,
-                  Color(0xFF667EEA),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildETACard(
+                    'Destination',
+                    _getDestinationETA(),
+                    Icons.flag,
+                    Color(0xFF667EEA),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -300,6 +308,7 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min, // FIXED: Add this
         children: [
           Icon(icon, color: color, size: 20),
           SizedBox(height: 4),
@@ -309,6 +318,8 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
               fontSize: 12,
               color: Colors.grey,
             ),
+            overflow: TextOverflow.ellipsis, // FIXED: Add overflow handling
+            textAlign: TextAlign.center,
           ),
           Text(
             eta,
@@ -317,6 +328,8 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
               fontWeight: FontWeight.bold,
               color: color,
             ),
+            overflow: TextOverflow.ellipsis, // FIXED: Add overflow handling
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -345,28 +358,35 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
             children: [
               Icon(Icons.security, color: Colors.red, size: 20),
               SizedBox(width: 8),
-              Text(
-                'Emergency & Safety',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+              // FIXED: Use Expanded to prevent overflow
+              Expanded(
+                child: Text(
+                  'Emergency & Safety',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           SizedBox(height: 16),
           
-          Row(
-            children: [
-              Expanded(
-                child: _buildSOSButton(),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: _buildHarassmentButton(),
-              ),
-            ],
+          // FIXED: Use IntrinsicHeight for equal height buttons
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildSOSButton(),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildHarassmentButton(),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -438,6 +458,7 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -459,39 +480,52 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
         ),
         SizedBox(height: 16),
         
-        GridView.count(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          children: [
-            _buildActionCard(
-              'Share Status',
-              Icons.share_location,
-              Color(0xFF10B981),
-              () => _shareStatus(),
-            ),
-            _buildActionCard(
-              'Report Issues',
-              Icons.report_problem,
-              Color(0xFFEF4444),
-              () => _showReportOptions(),
-            ),
-            _buildActionCard(
-              'Rate Experience',
-              Icons.star_rate,
-              Color(0xFFF59E0B),
-              () => _showFeedbackDialog(),
-            ),
-            _buildActionCard(
-              'Call Driver',
-              Icons.phone,
-              Color(0xFF3B82F6),
-              () => _callDriver(),
-            ),
-          ],
+        // FIXED: Better grid layout with proper spacing
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(
+                  width: (constraints.maxWidth - 12) / 2,
+                  child: _buildActionCard(
+                    'Share Status',
+                    Icons.share_location,
+                    Color(0xFF10B981),
+                    () => _shareStatus(),
+                  ),
+                ),
+                SizedBox(
+                  width: (constraints.maxWidth - 12) / 2,
+                  child: _buildActionCard(
+                    'Report Issues',
+                    Icons.report_problem,
+                    Color(0xFFEF4444),
+                    () => _showReportOptions(),
+                  ),
+                ),
+                SizedBox(
+                  width: (constraints.maxWidth - 12) / 2,
+                  child: _buildActionCard(
+                    'Rate Experience',
+                    Icons.star_rate,
+                    Color(0xFFF59E0B),
+                    () => _showFeedbackDialog(),
+                  ),
+                ),
+                SizedBox(
+                  width: (constraints.maxWidth - 12) / 2,
+                  child: _buildActionCard(
+                    'Call Driver',
+                    Icons.phone,
+                    Color(0xFF3B82F6),
+                    () => _callDriver(),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -501,6 +535,7 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        height: 100, // FIXED: Set fixed height
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -518,12 +553,12 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(8), // FIXED: Reduced padding
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 20), // FIXED: Reduced icon size
             ),
             SizedBox(height: 8),
             Text(
@@ -531,9 +566,11 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: 12, // FIXED: Reduced font size
                 color: Color(0xFF1F2937),
               ),
+              overflow: TextOverflow.ellipsis, // FIXED: Add overflow handling
+              maxLines: 2, // FIXED: Allow 2 lines
             ),
           ],
         ),
@@ -557,7 +594,7 @@ class _InTripDashboardScreenState extends State<InTripDashboardScreen> {
   
   String _getTripStatus() {
     if (_busStatus?['isDelayed'] == true) return 'Delayed';
-    return widget.trip.status == 'ongoing' ? 'In Transit' : 'Boarding';
+    return widget.trip.status == 'ongoing' ? 'Transit' : 'Boarding'; // FIXED: Shortened text
   }
   
   Color _getStatusColor() {
@@ -737,6 +774,25 @@ Track my journey: [Trip Link]
         ),
       );
     }
+  }
+  
+  // FIXED: Add method to navigate to trip completion
+  void _navigateToTripCompletion() {
+    final tripSummary = {
+      'actualDuration': '1h 25m',
+      'estimatedDuration': '1h 20m',
+      'delay': 5,
+    };
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TripCompletionScreen(
+          trip: widget.trip,
+          tripSummary: tripSummary,
+        ),
+      ),
+    );
   }
   
   void _reportRashDriving() {

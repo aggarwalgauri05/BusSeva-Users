@@ -326,52 +326,6 @@ class _HomeScreenContentState extends State<HomeScreenContent>
 
             const SizedBox(height: 20), // Add this spacing
 
-            // New Recommendations Button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const RecommendationsScreen()),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white, width: 2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                icon: const Icon(Icons.recommend, color: Colors.white),
-                label: const Text(
-                  'Get Recommendations',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Feature chips
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: [
-                _buildFeatureChip('🔍 Smart Search', Colors.white.withOpacity(0.2)),
-                _buildFeatureChip('⚡ Real-time', Colors.white.withOpacity(0.2)),
-                _buildFeatureChip('🎯 Best Routes', Colors.white.withOpacity(0.2)),
-              ],
-            ),
-
-
-            const SizedBox(height: 20),
-
             // Feature chips
             Wrap(
               alignment: WrapAlignment.center,
